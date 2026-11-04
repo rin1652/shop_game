@@ -37,9 +37,10 @@ export const DAILY_STEPS = [
 ];
 
 export const ROADMAP = [
-  { week: 1, focus: 'Sống sót trong cuộc gọi', detail: 'Xin nhắc lại, giới thiệu bản thân, báo cáo standup.' },
-  { week: 2, focus: 'Hiểu requirement của mentor', detail: 'Hỏi làm rõ, diễn giải lại để xác nhận, hỏi edge case.' },
-  { week: 3, focus: 'Báo bug & bảo vệ quan điểm', detail: 'Mô tả bug, severity vs priority, phản biện lịch sự.' },
-  { week: 4, focus: 'Đàm phán công việc', detail: 'Deadline, ước lượng, "not a bug", nhờ giúp đỡ, báo cáo cuối ngày.' },
-  { week: 5, focus: 'Làm việc thật', detail: 'Review test case, nghe tiếng Anh kiểu Ấn. Sau đó lặp lại các bài và tăng thời gian nhập vai với AI.' },
+  { week: 1, days: 'Ngày 1–3', focus: 'Sống sót trong cuộc gọi', detail: 'Xin nhắc lại, giới thiệu bản thân, báo cáo standup.' },
+  { week: 2, days: 'Ngày 4–6', focus: 'Hiểu requirement của mentor', detail: 'Hỏi làm rõ, diễn giải lại để xác nhận, hỏi edge case.' },
+  { week: 3, days: 'Ngày 7–9', focus: 'Báo bug & bảo vệ quan điểm', detail: 'Mô tả bug, severity vs priority, phản biện lịch sự.' },
+  { week: 4, days: 'Ngày 10–12', focus: 'Đàm phán công việc', detail: 'Deadline, ước lượng, "not a bug", nhờ giúp đỡ, báo cáo cuối ngày.' },
+  { week: 5, days: 'Ngày 13–14', focus: 'Làm việc thật', detail: 'Review test case, nghe tiếng Anh kiểu Ấn.' },
+  { week: 6, days: 'Vòng 2 (từ ngày 15)', focus: 'Học lại, khó hơn', detail: 'App tự quay lại bài cũ nhất. Lần này bật "Nghe chép" (ẩn chữ), không xem nghĩa, và nhập vai với AI mentor nhiều hơn.' },
 ];

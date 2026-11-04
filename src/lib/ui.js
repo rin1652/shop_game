@@ -41,13 +41,13 @@ export const micBtn = (target, { free = false } = {}) => {
   return `<button class="btn-icon mic" data-mic="${id}" ${free ? 'data-free="1"' : `data-target="${esc(target)}"`} title="Nói" aria-label="Bấm và nói">${icon('mic', 18)}</button><div class="mic-out" id="${id}"></div>`;
 };
 
-export function renderScore(target, said) {
-  if (!said) return '<span class="muted">Không nghe thấy gì. Bấm micro và nói lại nhé.</span>';
+export function renderScore(target, said, label = 'Bạn nói') {
+  if (!said) return label === 'Bạn nói' ? '<span class="muted">Không nghe thấy gì. Bấm micro và nói lại nhé.</span>' : '<span class="muted">Hãy gõ những gì bạn nghe được trước.</span>';
   const { score, words } = scoreSpeech(target, said);
   const cls = score >= 80 ? 'good' : score >= 50 ? 'ok' : 'bad';
   return `<div class="score ${cls}"><b>${score}%</b> ${score >= 80 ? 'Tốt lắm!' : score >= 50 ? 'Gần được rồi' : 'Thử lại nhé'}</div>
     <div class="words">${words.map((x) => `<span class="${x.ok ? 'hit' : 'miss'}">${esc(x.w)}</span>`).join(' ')}</div>
-    <div class="said">Bạn nói: “${esc(said)}”</div>`;
+    <div class="said">${label}: “${esc(said)}”</div>`;
 }
 
 let listeningBtn = null;

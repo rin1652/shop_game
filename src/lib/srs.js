@@ -11,6 +11,12 @@ export function cardContent(id) {
     const p = lesson?.phrases[Number(b)];
     return p && { kind, front: p.vi, back: p.en, speak: p.en, mode: 'produce', tag: lesson.titleEn };
   }
+  if (kind === 'd') {
+    // Thẻ luyện nghe: chỉ phát giọng mentor, lật thẻ mới thấy chữ.
+    const lesson = LESSONS.find((l) => l.id === a);
+    const line = lesson?.dialogue[Number(b)];
+    return line && { kind, front: '', back: line.en, example: line.vi, speak: line.en, mode: 'listen', tag: 'Luyện nghe mentor', mentorVoice: true };
+  }
   if (kind === 'v') {
     const v = QA_VOCAB[Number(a)];
     return v && { kind, front: v.en, back: v.vi, example: v.ex, speak: v.en, mode: 'recognize', tag: 'QA vocabulary' };
@@ -40,6 +46,16 @@ export function addLessonCards(lessonId) {
   let n = 0;
   lesson.phrases.forEach((_, i) => {
     if (addCard(`p:${lessonId}:${i}`)) n++;
+  });
+  return n;
+}
+
+export function addListeningCards(lessonId) {
+  const lesson = LESSONS.find((l) => l.id === lessonId);
+  if (!lesson) return 0;
+  let n = 0;
+  lesson.dialogue.forEach((line, i) => {
+    if (line.s === 'M' && addCard(`d:${lessonId}:${i}`)) n++;
   });
   return n;
 }

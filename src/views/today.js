@@ -57,7 +57,7 @@ export function renderToday(el) {
     </section>
 
     <a class="card lesson-card" href="#/lesson/${lesson.id}/dialogue">
-      <div class="tag">Bài ${LESSONS.indexOf(lesson) + 1} · Tuần ${lesson.week}</div>
+      <div class="tag">Bài ${LESSONS.indexOf(lesson) + 1} · Chặng ${lesson.week}</div>
       <h2>${esc(lesson.title)}</h2>
       <p class="muted">${esc(lesson.goal)}</p>
     </a>
@@ -83,8 +83,8 @@ export function renderToday(el) {
     </details>
 
     <details class="card">
-      <summary><b>Lộ trình 5 tuần</b></summary>
-      <ul class="roadmap">${ROADMAP.map((r) => `<li><b>Tuần ${r.week}: ${esc(r.focus)}</b><br><span class="muted">${esc(r.detail)}</span></li>`).join('')}</ul>
+      <summary><b>Lộ trình</b></summary>
+      <ul class="roadmap">${ROADMAP.map((r) => `<li><b>${esc(r.days)}: ${esc(r.focus)}</b><br><span class="muted">${esc(r.detail)}</span></li>`).join('')}</ul>
       <p class="muted small">Mỗi ngày 1 bài. Bài nào chưa tự tin thì học lại; flashcard sẽ tự nhắc ôn đúng lúc.</p>
     </details>
   `;

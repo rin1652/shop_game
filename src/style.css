@@ -37,6 +37,7 @@
 }
 
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 html { -webkit-text-size-adjust: 100%; }
 body {
   margin: 0;
@@ -226,3 +227,12 @@ input[type='range'] { width: 100%; }
   transition: 0.25s; z-index: 10; max-width: calc(100% - 32px); text-align: center;
 }
 .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+/* Nghe chép */
+.dict { display: none; margin-top: 8px; }
+.dictation .line.mentor .dict { display: flex; flex-wrap: wrap; gap: 6px; }
+.dict input { flex: 1; min-width: 0; }
+.dict-out { flex-basis: 100%; font-size: 0.9rem; }
+.dictation .line.mentor:not(.revealed) .en,
+.dictation .line.mentor:not(.revealed) .vi { display: none; }
+.flash .listen-only { margin: 14px 0 6px; }

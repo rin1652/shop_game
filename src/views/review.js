@@ -39,8 +39,18 @@ export function renderReview(el) {
       <h1>Ôn tập <span class="badge">${queue.length} còn lại</span></h1>
       <div class="card flash">
         <div class="tag">${esc(c.tag)}</div>
-        <div class="front">${esc(c.front)}</div>
-        <p class="muted small">${c.mode === 'produce' ? 'Nói to câu tiếng Anh trước khi lật thẻ.' : 'Nghĩa là gì? Thử đặt một câu với nó.'}</p>
+        ${
+          c.mode === 'listen'
+            ? `<div class="listen-only ctrl">${speakBtn(c.speak, 'mentor')}</div>`
+            : `<div class="front">${esc(c.front)}</div>`
+        }
+        <p class="muted small">${
+          c.mode === 'produce'
+            ? 'Nói to câu tiếng Anh trước khi lật thẻ.'
+            : c.mode === 'listen'
+              ? 'Nghe mentor nói (bấm nghe lại bao nhiêu lần cũng được). Bạn hiểu mentor muốn gì? Rồi mới lật thẻ.'
+              : 'Nghĩa là gì? Thử đặt một câu với nó.'
+        }</p>
         ${c.mode === 'produce' ? `<div class="ctrl">${micBtn(c.back)}</div>` : ''}
         <div class="answer" hidden>
           <div class="back">${esc(c.back)}</div>
@@ -56,8 +66,9 @@ export function renderReview(el) {
       el.querySelector('.answer').hidden = false;
       el.querySelector('.grades').hidden = false;
       el.querySelector('#flip').hidden = true;
-      speak(c.speak, { kind: voice });
+      if (c.mode !== 'listen') speak(c.speak, { kind: voice });
     };
+    if (c.mode === 'listen') speak(c.speak, { kind: 'mentor' });
     el.querySelectorAll('.grade').forEach((b) => {
       b.onclick = () => {
         gradeCard(card.id, Number(b.dataset.g));
