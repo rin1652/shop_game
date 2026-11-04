@@ -192,7 +192,7 @@ function renderRoleplay(box, lesson) {
     ${
       hasKey()
         ? `<a class="btn block ghost" href="#/chat?lesson=${lesson.id}">Luyện thêm với AI mentor theo chủ đề này ›</a>`
-        : '<p class="muted small">Có Claude API key? Thêm trong <a href="#/settings">Cài đặt</a> để luyện hội thoại tự do với AI mentor.</p>'
+        : '<p class="muted small">Có API key AI (Claude, ChatGPT, Gemini…)? Thêm trong <a href="#/settings">Cài đặt</a> để luyện hội thoại tự do với AI mentor.</p>'
     }
     ${lesson.roleplay
       .map(

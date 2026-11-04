@@ -105,7 +105,7 @@ export function renderReflect(el) {
       <span class="spacer"></span>${micBtn('', { free: true })}
     </div>
     <div id="aiOut" class="ai-out"></div>
-    ${hasKey() ? '' : '<p class="muted small">Muốn AI sửa lỗi bài viết? Thêm Claude API key trong <a href="#/settings">Cài đặt</a>.</p>'}
+    ${hasKey() ? '' : '<p class="muted small">Muốn AI sửa lỗi bài viết? Thêm API key (Claude, ChatGPT, Gemini…) trong <a href="#/settings">Cài đặt</a>.</p>'}
   `;
   const ta = el.querySelector('#reflect');
   el.addEventListener('spoken', (e) => {

@@ -1,24 +1,32 @@
-// AI mentor dùng Claude API. API key do bạn nhập, chỉ lưu trong trình duyệt của bạn.
+// AI mentor: hỗ trợ nhiều nhà cung cấp. API key do bạn nhập, chỉ lưu trong trình duyệt của bạn.
 import Anthropic from '@anthropic-ai/sdk';
 import { getState } from './storage.js';
+import { PROVIDERS, ProviderError, openaiCompatChat, geminiChat, listRemoteModels } from './providers.js';
 
-export const MODELS = [
-  { id: 'claude-opus-5-5', label: 'Claude Opus 5.5 (mặc định, tốt nhất)' },
-  { id: 'claude-sonnet-5-5', label: 'Claude Sonnet 5.5 (rẻ hơn)' },
-  { id: 'claude-haiku-5-5', label: 'Claude Haiku 5.5 (rẻ nhất)' },
-];
+export { PROVIDERS };
 
-export const hasKey = () => Boolean(getState().settings.apiKey?.trim());
+export function currentAI() {
+  const s = getState().settings;
+  const provider = PROVIDERS[s.provider] ? s.provider : 'anthropic';
+  const key = (s.keys?.[provider] || '').trim();
+  const model = (s.models?.[provider] || PROVIDERS[provider].defaultModel || '').trim();
+  return { provider, key, model, settings: s };
+}
 
-function client() {
+export const hasKey = () => {
+  const { key, model } = currentAI();
+  return Boolean(key && model);
+};
+
+function anthropicClient(key) {
   return new Anthropic({
-    apiKey: getState().settings.apiKey.trim(),
+    apiKey: key,
     // App cá nhân chạy hoàn toàn trên trình duyệt: key chỉ nằm trên máy bạn.
     dangerouslyAllowBrowser: true,
   });
 }
 
-function friendlyError(err) {
+function anthropicError(err) {
   if (err instanceof Anthropic.AuthenticationError) return 'API key không đúng hoặc đã bị thu hồi. Kiểm tra lại trong Cài đặt.';
   if (err instanceof Anthropic.PermissionDeniedError) return 'API key không có quyền dùng model này.';
   if (err instanceof Anthropic.NotFoundError) return 'Không tìm thấy model. Hãy chọn model khác trong Cài đặt.';
@@ -30,36 +38,63 @@ function friendlyError(err) {
   return 'Lỗi: ' + (err?.message || String(err));
 }
 
-// Gửi hội thoại, stream chữ trả về qua onText. Trả về toàn bộ văn bản.
-export async function chat({ system, messages, onText, signal }) {
-  const { model } = getState().settings;
-  const params = {
-    model,
-    max_tokens: 16000,
-    system,
-    messages,
-    output_config: { effort: 'low' }, // trò chuyện ngắn — không cần suy nghĩ sâu
-  };
-  // Haiku không có fallback phía server; Opus/Sonnet bật fallback mặc định khi bị từ chối.
-  if (model !== 'claude-haiku-5-5') {
+// Model Claude hỗ trợ tham số effort và fallback phía server.
+const EFFORT_MODELS = new Set(['claude-opus-5-5', 'claude-sonnet-5-5', 'claude-haiku-5-5', 'claude-opus-5', 'claude-fable-5-1']);
+const FALLBACK_MODELS = new Set(['claude-opus-5-5', 'claude-sonnet-5-5', 'claude-opus-5', 'claude-fable-5-1']);
+
+async function anthropicChat({ key, model, system, messages, onText, signal }) {
+  const params = { model, max_tokens: 16000, system, messages };
+  if (EFFORT_MODELS.has(model)) params.output_config = { effort: 'low' }; // trò chuyện ngắn — không cần suy nghĩ sâu
+  if (FALLBACK_MODELS.has(model)) {
     params.betas = ['server-side-fallback-2026-07-01'];
     params.fallbacks = 'default';
   }
   try {
-    const stream = client().beta.messages.stream(params, { signal });
+    const stream = anthropicClient(key).beta.messages.stream(params, { signal });
     let text = '';
     stream.on('text', (delta) => {
       text += delta;
       onText?.(text);
     });
     const final = await stream.finalMessage();
-    if (final.stop_reason === 'refusal') {
-      throw new Error('AI từ chối trả lời yêu cầu này. Hãy thử diễn đạt khác.');
-    }
+    if (final.stop_reason === 'refusal') throw new ProviderError('AI từ chối trả lời yêu cầu này. Hãy thử diễn đạt khác.');
     return text;
   } catch (err) {
-    if (err?.name === 'AbortError' || err instanceof Anthropic.APIUserAbortError) return '';
-    throw new Error(friendlyError(err));
+    if (err instanceof Anthropic.APIUserAbortError) throw Object.assign(new Error('aborted'), { name: 'AbortError' });
+    if (err instanceof ProviderError) throw err;
+    throw new ProviderError(anthropicError(err));
+  }
+}
+
+// Gửi hội thoại, stream chữ trả về qua onText. Trả về toàn bộ văn bản ('' nếu bị huỷ).
+export async function chat({ system, messages, onText, signal, override }) {
+  const ai = { ...currentAI(), ...override };
+  if (!ai.key) throw new Error('Chưa nhập API key cho ' + PROVIDERS[ai.provider].label + '. Vào Cài đặt để thêm.');
+  if (!ai.model) throw new Error('Chưa chọn model. Vào Cài đặt để chọn.');
+  const args = { ...ai, system, messages, onText, signal };
+  try {
+    if (ai.provider === 'anthropic') return await anthropicChat(args);
+    if (ai.provider === 'gemini') return await geminiChat(args);
+    return await openaiCompatChat(args);
+  } catch (err) {
+    if (err?.name === 'AbortError') return '';
+    throw new Error(err instanceof ProviderError ? err.message : 'Lỗi: ' + (err?.message || String(err)));
+  }
+}
+
+// Danh sách model lấy trực tiếp từ nhà cung cấp.
+export async function listModels(provider) {
+  const s = getState().settings;
+  const key = (s.keys?.[provider] || '').trim();
+  if (!key) throw new Error('Nhập API key trước đã.');
+  try {
+    if (provider === 'anthropic') {
+      const page = await anthropicClient(key).models.list({ limit: 100 });
+      return page.data.map((m) => ({ id: m.id, label: m.display_name || '' }));
+    }
+    return await listRemoteModels(provider, s, key);
+  } catch (err) {
+    throw new Error(err instanceof ProviderError ? err.message : provider === 'anthropic' ? anthropicError(err) : err.message);
   }
 }
 

@@ -4,8 +4,10 @@ const KEY = 'tagt:v1';
 const DEFAULT_STATE = {
   version: 1,
   settings: {
-    apiKey: '',
-    model: 'claude-opus-5-5',
+    provider: 'anthropic',
+    keys: {}, // API key theo từng nhà cung cấp
+    models: {}, // model đã chọn theo từng nhà cung cấp
+    customBaseUrl: '',
     mentorVoice: '',
     myVoice: '',
     rate: 0.95,
@@ -24,10 +26,18 @@ function load() {
     const raw = localStorage.getItem(KEY);
     if (!raw) return structuredClone(DEFAULT_STATE);
     const parsed = JSON.parse(raw);
+    const settings = { ...structuredClone(DEFAULT_STATE.settings), ...(parsed.settings || {}) };
+    // Chuyển từ bản cũ (chỉ có 1 key Claude) sang dạng nhiều nhà cung cấp.
+    if (settings.apiKey) {
+      settings.keys = { ...settings.keys, anthropic: settings.keys?.anthropic || settings.apiKey };
+      if (settings.model) settings.models = { ...settings.models, anthropic: settings.models?.anthropic || settings.model };
+    }
+    delete settings.apiKey;
+    delete settings.model;
     return {
       ...structuredClone(DEFAULT_STATE),
       ...parsed,
-      settings: { ...DEFAULT_STATE.settings, ...(parsed.settings || {}) },
+      settings,
       chat: { ...DEFAULT_STATE.chat, ...(parsed.chat || {}) },
     };
   } catch {

@@ -236,3 +236,6 @@ input[type='range'] { width: 100%; }
 .dictation .line.mentor:not(.revealed) .en,
 .dictation .line.mentor:not(.revealed) .vi { display: none; }
 .flash .listen-only { margin: 14px 0 6px; }
+.key-row { display: flex; gap: 6px; margin-top: 4px; }
+.key-row input { margin-top: 0 !important; flex: 1; min-width: 0; }
+.ok-text { color: var(--good); }

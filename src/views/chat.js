@@ -1,4 +1,4 @@
-import { SCENARIOS, mentorSystemPrompt, chat, hasKey } from '../lib/ai.js';
+import { SCENARIOS, mentorSystemPrompt, chat, hasKey, currentAI, PROVIDERS } from '../lib/ai.js';
 import { lessonById } from '../data/lessons.js';
 import { getState, save } from '../lib/storage.js';
 import { speak, stopSpeaking, listen, stopListening, canListen } from '../lib/speech.js';
@@ -16,7 +16,7 @@ export function renderChat(el, query) {
       <h1>AI Mentor</h1>
       <div class="card">
         <p>Luyện nói chuyện tự do với <b>Rahul</b>, một QA Lead người Ấn Độ do AI đóng vai. Rahul sẽ giao requirement mơ hồ, đôi khi phản bác bạn, và sau mỗi câu sẽ góp ý bằng tiếng Việt.</p>
-        <p class="muted">Cần Claude API key (lấy ở console.anthropic.com). Key chỉ lưu trong trình duyệt của bạn.</p>
+        <p class="muted">Cần API key của một nhà cung cấp AI: Anthropic (Claude), OpenAI (ChatGPT), Google Gemini (có gói miễn phí), OpenRouter hoặc dịch vụ tương thích OpenAI. Key chỉ lưu trong trình duyệt của bạn.</p>
         <a class="btn" href="#/settings">Thêm API key</a>
       </div>
       <p class="muted small">Chưa có key? Bạn vẫn luyện được với phần <a href="#/lessons">Nhập vai</a> có sẵn trong mỗi bài.</p>`;
@@ -39,6 +39,7 @@ export function renderChat(el, query) {
       <select id="scenario">${SCENARIOS.map((x) => `<option value="${x.id}" ${x.id === scenario.id ? 'selected' : ''}>${esc(x.title)}</option>`).join('')}</select>
     </label>
     <p class="muted small">${esc(scenario.brief)}${activeLesson ? ` Chủ đề bài: <b>${esc(activeLesson.titleEn)}</b> <a href="#" id="clearLesson">(bỏ)</a>` : ''}</p>
+    <p class="muted small">AI: ${esc(PROVIDERS[currentAI().provider].label)} · <code>${esc(currentAI().model)}</code> · <a href="#/settings">đổi</a></p>
     <div class="chat" id="log"></div>
     <div class="composer">
       <button class="btn-icon mic big" id="mic" title="Nói">${icon('mic', 22)}</button>
