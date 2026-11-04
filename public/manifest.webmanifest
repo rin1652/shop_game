@@ -1,0 +1,11 @@
+{
+  "name": "Tiếng Anh giao tiếp cho QA",
+  "short_name": "Tiếng Anh QA",
+  "description": "Học tiếng Anh giao tiếp 1 giờ mỗi ngày cho thực tập sinh QA.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f7f7f5",
+  "theme_color": "#0f766e",
+  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}
