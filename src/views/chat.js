@@ -4,6 +4,7 @@ import { getState, save } from '../lib/storage.js';
 import { speak, stopSpeaking, listen, stopListening, canListen } from '../lib/speech.js';
 import { esc, icon, toast } from '../lib/ui.js';
 import { markStep } from './today.js';
+import { gateChat, trimHistory, recordAvoided } from '../lib/aiGate.js';
 
 const split = (text) => {
   const i = text.indexOf('###');
@@ -75,6 +76,14 @@ export function renderChat(el, query) {
 
   const send = async (text) => {
     if (controller) return;
+    const lastUser = [...s.chat.messages].reverse().find((m) => m.role === 'user' && m.content !== '[START]');
+    const gate = gateChat(text, lastUser?.content);
+    if (!gate.ok) {
+      recordAvoided();
+      toast(gate.reason);
+      input.value = text;
+      return;
+    }
     s.chat.messages.push({ role: 'user', content: text });
     save();
     draw('');
@@ -82,7 +91,7 @@ export function renderChat(el, query) {
     try {
       const full = await chat({
         system: mentorSystemPrompt(scenario, activeLesson),
-        messages: s.chat.messages,
+        messages: trimHistory(s.chat.messages),
         onText: (t) => draw(t),
         signal: controller.signal,
       });

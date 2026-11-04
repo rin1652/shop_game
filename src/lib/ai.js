@@ -2,6 +2,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { getState } from './storage.js';
 import { PROVIDERS, ProviderError, openaiCompatChat, geminiChat, listRemoteModels } from './providers.js';
+import { recordCall, cacheGet, cacheSet, recordAvoided } from './aiGate.js';
 
 export { PROVIDERS };
 
@@ -43,7 +44,8 @@ const EFFORT_MODELS = new Set(['claude-opus-5-5', 'claude-sonnet-5-5', 'claude-h
 const FALLBACK_MODELS = new Set(['claude-opus-5-5', 'claude-sonnet-5-5', 'claude-opus-5', 'claude-fable-5-1']);
 
 async function anthropicChat({ key, model, system, messages, onText, signal }) {
-  const params = { model, max_tokens: 16000, system, messages };
+  // cache_control: phần đầu prompt giống nhau giữa các lượt được tính giá rẻ hơn — không ảnh hưởng chất lượng.
+  const params = { model, max_tokens: 16000, system, messages, cache_control: { type: 'ephemeral' } };
   if (EFFORT_MODELS.has(model)) params.output_config = { effort: 'low' }; // trò chuyện ngắn — không cần suy nghĩ sâu
   if (FALLBACK_MODELS.has(model)) {
     params.betas = ['server-side-fallback-2026-07-01'];
@@ -73,9 +75,12 @@ export async function chat({ system, messages, onText, signal, override }) {
   if (!ai.model) throw new Error('Chưa chọn model. Vào Cài đặt để chọn.');
   const args = { ...ai, system, messages, onText, signal };
   try {
-    if (ai.provider === 'anthropic') return await anthropicChat(args);
-    if (ai.provider === 'gemini') return await geminiChat(args);
-    return await openaiCompatChat(args);
+    let out;
+    if (ai.provider === 'anthropic') out = await anthropicChat(args);
+    else if (ai.provider === 'gemini') out = await geminiChat(args);
+    else out = await openaiCompatChat(args);
+    recordCall(system + messages.map((m) => m.content).join('\n'), out);
+    return out;
   } catch (err) {
     if (err?.name === 'AbortError') return '';
     throw new Error(err instanceof ProviderError ? err.message : 'Lỗi: ' + (err?.message || String(err)));
@@ -168,4 +173,23 @@ export async function correctWriting(text, onText) {
       'You are an English writing coach for a Vietnamese QA intern with basic English. Correct their short standup-style text. Reply in Vietnamese with: (1) the corrected English text, (2) a short bullet list of the main mistakes with simple explanations, (3) one more natural version a QA engineer would say in a standup. Keep it concise.',
     messages: [{ role: 'user', content: text }],
   });
+}
+
+// Chấm câu trả lời nhập vai khi câu của bạn khác câu mẫu (đã qua gateRoleplay).
+export async function evaluateRoleplay({ mentor, task, sample, answer, onText }) {
+  const key = [mentor, task, answer.trim().toLowerCase()].join('|');
+  const cached = cacheGet('roleplay', key);
+  if (cached) {
+    recordAvoided('cached');
+    onText?.(cached);
+    return cached;
+  }
+  const out = await chat({
+    onText,
+    system:
+      'You coach a Vietnamese QA intern (basic English) who practises answering an Indian QA mentor. Judge whether the answer does the task and would be understood at work. The model answer is only one possible answer; different wording is fine. Reply in Vietnamese, at most 4 short lines, using exactly this format:\n✅ Đạt / ⚠️ Gần đạt / ❌ Chưa đạt: <one-sentence reason>\n✔️ Sửa: <the answer corrected, or "Câu của bạn ổn.">\n💬 Tự nhiên hơn: <a natural workplace version>\n💡 <one short tip>',
+    messages: [{ role: 'user', content: `Mentor said: "${mentor}"\nTask (Vietnamese): ${task}\nModel answer: "${sample}"\nIntern answered (from speech recognition, ignore punctuation): "${answer}"` }],
+  });
+  if (out) cacheSet('roleplay', key, out);
+  return out;
 }

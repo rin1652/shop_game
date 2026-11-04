@@ -2,7 +2,8 @@ import { LESSONS, lessonById } from '../data/lessons.js';
 import { getState, getDay, save } from '../lib/storage.js';
 import { addLessonCards, addListeningCards } from '../lib/srs.js';
 import { speak, stopSpeaking, hasIndianVoice } from '../lib/speech.js';
-import { hasKey } from '../lib/ai.js';
+import { hasKey, evaluateRoleplay } from '../lib/ai.js';
+import { gateRoleplay, recordAvoided } from '../lib/aiGate.js';
 import { esc, icon, toast, speakBtn, micBtn, renderScore } from '../lib/ui.js';
 import { markStep, todayLesson } from './today.js';
 
@@ -197,11 +198,13 @@ function renderRoleplay(box, lesson) {
     ${lesson.roleplay
       .map(
         (r, i) => `
-      <div class="card roleplay">
+      <div class="card roleplay" data-rp="${i}">
         <div class="line mentor"><div class="who">Rahul (mentor)</div><div class="en">${esc(r.mentor)}</div>
           <div class="ctrl">${speakBtn(r.mentor, 'mentor')}</div></div>
         <div class="task">🎯 ${esc(r.task)}</div>
         <div class="ctrl">${micBtn('', { free: true })}</div>
+        <div class="rp-answer"><input type="text" placeholder="…hoặc gõ câu trả lời" autocomplete="off" autocapitalize="off"><button class="btn small" data-eval="${i}">Chấm</button></div>
+        <div class="rp-eval"></div>
         <p class="muted small">Tự chấm: ✓ trả lời đúng nhiệm vụ · ✓ câu đầy đủ chủ ngữ + động từ · ✓ lịch sự (could / please / I think).</p>
         <details><summary>Xem câu mẫu</summary>
           <div class="en sample">${esc(r.sample)}</div>
@@ -212,5 +215,42 @@ function renderRoleplay(box, lesson) {
       .join('')}
     ${finishBtn('Xong phần nhập vai')}
   `;
+  // Chấm câu trả lời: cục bộ trước, chỉ gọi AI khi câu khác câu mẫu (xem docs/AI_POLICY.md).
+  const evaluate = async (card, answer) => {
+    const r = lesson.roleplay[Number(card.dataset.rp)];
+    const out = card.querySelector('.rp-eval');
+    const gate = gateRoleplay(answer, r.sample);
+    if (gate.mode === 'reject') {
+      out.innerHTML = `<span class="muted">${esc(gate.msg)}</span>`;
+      return;
+    }
+    if (gate.mode === 'local') {
+      recordAvoided();
+      out.innerHTML = `<div class="score good">✅ ${esc(gate.msg)}</div>`;
+      return;
+    }
+    if (!hasKey()) {
+      out.innerHTML = `<span class="muted">Câu của bạn khác câu mẫu (${gate.score}% giống). Mở “Xem câu mẫu” và tự so sánh theo 3 tiêu chí bên dưới. Thêm API key trong Cài đặt để AI chấm câu khác mẫu.</span>`;
+      return;
+    }
+    out.innerHTML = '<span class="muted">AI đang chấm…</span>';
+    try {
+      await evaluateRoleplay({ ...r, answer, onText: (t) => (out.innerHTML = `<div class="notes">${esc(t)}</div>`) });
+    } catch (err) {
+      out.innerHTML = `<span class="err">${esc(err.message)}</span>`;
+    }
+  };
+  box.addEventListener('spoken', (e) => {
+    const card = e.target.closest('.roleplay');
+    if (!card || !e.target.dataset.free) return;
+    card.querySelector('.rp-answer input').value = e.detail || '';
+    evaluate(card, e.detail || '');
+  });
+  box.querySelectorAll('[data-eval]').forEach((b) => {
+    b.onclick = () => {
+      const card = b.closest('.roleplay');
+      evaluate(card, card.querySelector('.rp-answer input').value.trim());
+    };
+  });
   onFinish(box, lesson, 'roleplay', '#/today');
 }

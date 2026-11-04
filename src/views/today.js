@@ -4,6 +4,7 @@ import { getState, getDay, save, streak, todayKey } from '../lib/storage.js';
 import { cardStats } from '../lib/srs.js';
 import { hasKey, correctWriting } from '../lib/ai.js';
 import { esc, icon, toast, micBtn } from '../lib/ui.js';
+import { gateWriting, cacheSet, recordAvoided, normText } from '../lib/aiGate.js';
 
 export function todayLesson() {
   const s = getState();
@@ -122,14 +123,22 @@ export function renderReflect(el) {
   if (ai) {
     ai.onclick = async () => {
       const text = ta.value.trim();
-      if (!text) return toast('Hãy viết gì đó trước nhé.');
+      const gate = gateWriting(text);
+      const out = el.querySelector('#aiOut');
+      if (gate.mode === 'reject') return toast(gate.msg);
       day.reflect = text;
       save();
-      const out = el.querySelector('#aiOut');
+      if (gate.mode === 'cached') {
+        recordAvoided('cached');
+        out.textContent = gate.value;
+        toast('Bài này đã được sửa trước đó: dùng lại kết quả, không gọi AI.');
+        return;
+      }
       out.textContent = 'Đang sửa…';
       ai.disabled = true;
       try {
-        await correctWriting(text, (t) => (out.textContent = t));
+        const res = await correctWriting(text, (t) => (out.textContent = t));
+        if (res) cacheSet('writing', normText(text), res);
       } catch (err) {
         out.innerHTML = `<span class="err">${esc(err.message)}</span>`;
       } finally {

@@ -1,5 +1,6 @@
 import { getState, save, replaceState, resetState } from '../lib/storage.js';
 import { PROVIDERS, chat, listModels } from '../lib/ai.js';
+import { todayUsage } from '../lib/aiGate.js';
 import { loadVoices, englishVoices, speak, hasIndianVoice } from '../lib/speech.js';
 import { esc, toast } from '../lib/ui.js';
 
@@ -147,6 +148,25 @@ function renderAISection(box) {
       <button class="btn small" id="testAI" type="button">Kiểm tra kết nối</button>
     </div>
     <div id="aiStatus" class="small"></div>
+    ${(() => {
+      const u = todayUsage();
+      return `<h3>AI hôm nay</h3>
+      <div class="usage">
+        <div><b>${u.calls}</b><span class="muted small">lần gọi AI</span></div>
+        <div><b>~${(u.inTok + u.outTok).toLocaleString('vi-VN')}</b><span class="muted small">token (ước tính)</span></div>
+        <div><b>${u.avoided}</b><span class="muted small">lần tự xử lý, không cần AI</span></div>
+        <div><b>${u.cached}</b><span class="muted small">lần dùng lại kết quả cũ</span></div>
+      </div>
+      <details><summary class="small"><b>Khi nào app gọi AI?</b></summary>
+        <ul class="small muted">
+          <li>Luôn ưu tiên hiệu quả học: không giới hạn số lần, không tự đổi sang model rẻ hơn.</li>
+          <li><b>Không gọi AI</b> khi máy tự làm được ngang hoặc tốt hơn: chấm phát âm và nghe chép (so từng từ), flashcard, đọc giọng mentor, câu trả lời nhập vai giống câu mẫu ≥ 80%.</li>
+          <li><b>Không gọi AI</b> khi AI không giúp được gì: câu trống hoặc không có chữ tiếng Anh, câu quá ngắn, gửi trùng câu vừa gửi, bài viết đã được sửa trước đó (dùng lại kết quả).</li>
+          <li><b>Gọi AI</b> khi chỉ AI làm được: hội thoại tự do với mentor, chấm câu trả lời khác câu mẫu, sửa bài viết mới.</li>
+          <li>Chat dài: gửi kèm phần mở đầu tình huống và 24 lượt gần nhất; với Claude, bật bộ nhớ đệm prompt để giảm giá phần lặp lại.</li>
+        </ul>
+      </details>`;
+    })()}
     <p class="muted small">Đang dùng: <b>${esc(p.label)}</b>${current ? ` · <code>${esc(current)}</code>` : ' · <span class="err">chưa chọn model</span>'}${
       withKey.length ? ` · Đã có key: ${withKey.map((k) => esc(PROVIDERS[k].label)).join(', ')}` : ''
     }</p>

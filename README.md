@@ -21,6 +21,7 @@ Dùng tốt trên điện thoại, cài được ra màn hình chính như một
 - **AI Mentor (không bắt buộc):** “Rahul”, QA Lead người Ấn do AI đóng vai. Rahul giao requirement mơ hồ, phản bác bạn, và sau mỗi câu góp ý bằng tiếng Việt. Có thêm tính năng AI sửa bài viết tổng kết.
   - Nhà cung cấp: **Anthropic (Claude)**, **OpenAI (ChatGPT)**, **Google Gemini** (có gói miễn phí), **OpenRouter**, hoặc **tuỳ chỉnh** (bất kỳ API tương thích OpenAI, nhập Base URL).
   - Mỗi nhà cung cấp lưu key và model riêng. Có nút “Tải danh sách model” để lấy model mới nhất, và nút “Kiểm tra kết nối”.
+  - Chỉ gọi AI khi AI làm tốt hơn cách không dùng AI. Xem sơ đồ và thuật toán ở [docs/AI_POLICY.md](docs/AI_POLICY.md).
   - Key chỉ lưu trong trình duyệt trên thiết bị của bạn, không có trong file sao lưu.
 
 ## Dùng trên điện thoại
