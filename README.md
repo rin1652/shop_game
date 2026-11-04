@@ -16,7 +16,7 @@ Dùng tốt trên điện thoại, cài được ra màn hình chính như một
 
 ## Nội dung
 
-- **14 bài theo lộ trình 5 tuần:** xin nhắc lại, giới thiệu bản thân, standup, hỏi làm rõ requirement, diễn giải lại để xác nhận, edge case, báo bug, severity vs priority, phản biện lịch sự, deadline/ước lượng, “not a bug”/“cannot reproduce”, nhờ giúp & báo cáo cuối ngày, review test case, nghe tiếng Anh kiểu Ấn.
+- **14 bài, mỗi ngày 1 bài (vòng 2 từ ngày 15 khó hơn):** xin nhắc lại, giới thiệu bản thân, standup, hỏi làm rõ requirement, diễn giải lại để xác nhận, edge case, báo bug, severity vs priority, phản biện lịch sự, deadline/ước lượng, “not a bug”/“cannot reproduce”, nhờ giúp & báo cáo cuối ngày, review test case, nghe tiếng Anh kiểu Ấn.
 - **Từ điển:** 50 từ vựng QA, 30 cách nói phổ biến của người Ấn trong IT (do the needful, revert, prepone, I have a doubt…), mẹo nghe giọng Ấn.
 - **AI Mentor (không bắt buộc):** “Rahul”, QA Lead người Ấn do AI đóng vai. Rahul giao requirement mơ hồ, phản bác bạn, và sau mỗi câu góp ý bằng tiếng Việt. Có thêm tính năng AI sửa bài viết tổng kết.
   - Nhà cung cấp: **Anthropic (Claude)**, **OpenAI (ChatGPT)**, **Google Gemini** (có gói miễn phí), **OpenRouter**, hoặc **tuỳ chỉnh** (bất kỳ API tương thích OpenAI, nhập Base URL).
