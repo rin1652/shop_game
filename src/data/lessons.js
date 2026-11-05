@@ -1,7 +1,9 @@
 // Bài học theo chủ đề — mục tiêu: QA intern giao tiếp với mentor người Ấn Độ.
 // M = Mentor (giọng Ấn, đọc bằng giọng en-IN), I = Intern (bạn).
 
-export const LESSONS = [
+import { PLATFORM_LESSONS } from './lessonsPlatform.js';
+
+const CORE_LESSONS = [
   {
     id: 'l01',
     week: 1,
@@ -446,5 +448,7 @@ export const LESSONS = [
     ],
   },
 ];
+
+export const LESSONS = [...CORE_LESSONS, ...PLATFORM_LESSONS];
 
 export const lessonById = (id) => LESSONS.find((l) => l.id === id);

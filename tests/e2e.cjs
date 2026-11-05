@@ -52,7 +52,7 @@ const overflowX = (page) => page.evaluate(() => document.documentElement.scrollW
       const errors = [];
       page.on('pageerror', (e) => errors.push(e.message));
       await seed(page, withKey);
-      const routes = ['#/today', '#/lessons', '#/lesson/l09/dialogue', '#/lesson/l09/phrases', '#/lesson/l09/roleplay', '#/review', '#/chat', '#/glossary/qa', '#/glossary/indian', '#/glossary/accent', '#/settings', '#/today/reflect'];
+      const routes = ['#/today', '#/lessons', '#/lesson/l09/dialogue', '#/lesson/l09/phrases', '#/lesson/l09/roleplay', '#/review', '#/chat', '#/glossary/qa', '#/glossary/indian', '#/glossary/accent', '#/settings', '#/today/reflect', '#/exam', '#/glossary/ai'];
       const st = { calls: 0 };
       await mockAI(page, st);
       for (const r of routes) {
@@ -78,25 +78,34 @@ const overflowX = (page) => page.evaluate(() => document.documentElement.scrollW
       await page.goto(URL + '#/lesson/l01/dialogue');
       await page.waitForSelector('.line.mentor');
       const contrast = await page.evaluate(() => {
-        const lum = (c) => {
-          const [r, g, b] = c.match(/\d+(\.\d+)?/g).slice(0, 3).map(Number).map((v) => {
+        const parse = (c) => {
+          const v = c.match(/[\d.]+/g).map(Number);
+          return { r: v[0], g: v[1], b: v[2], a: v.length > 3 ? v[3] : 1 };
+        };
+        const lum = ({ r, g, b }) => {
+          const f = (v) => {
             v /= 255;
             return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
-          });
-          return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+          };
+          return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
         };
+        // Ghép các lớp nền bán trong suốt từ ngoài vào trong để có màu nền thật sau chữ.
         const bgOf = (el) => {
+          const layers = [];
           for (let n = el; n; n = n.parentElement) {
-            const c = getComputedStyle(n).backgroundColor;
-            if (c && !c.startsWith('rgba(0, 0, 0, 0)') && c !== 'transparent') return c;
+            const c = parse(getComputedStyle(n).backgroundColor);
+            if (c.a > 0) layers.push(c);
+            if (c.a >= 1) break;
           }
-          return 'rgb(255,255,255)';
+          let out = layers.length && layers.at(-1).a >= 1 ? layers.pop() : parse(getComputedStyle(document.body).backgroundColor);
+          for (const c of layers.reverse()) out = { r: c.r * c.a + out.r * (1 - c.a), g: c.g * c.a + out.g * (1 - c.a), b: c.b * c.a + out.b * (1 - c.a) };
+          return out;
         };
         const ratio = (el) => {
-          const a = lum(getComputedStyle(el).color), b = lum(bgOf(el));
+          const a = lum(parse(getComputedStyle(el).color)), b = lum(bgOf(el));
           return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
         };
-        const sel = ['.line.mentor .en', '.line.me .en', '.hint', '.btn', 'nav.bottom a', '.muted'];
+        const sel = ['.line.mentor .en', '.line.me .en', '.hint', '.btn', '.btn.filled', 'nav.bottom a', 'nav.bottom a.active', '.secondary', '.eyebrow'];
         return sel.map((s) => [s, ratio(document.querySelector(s))]);
       });
       for (const [s, r] of contrast) check(`tối: tương phản ${s} ≥ 4.5`, r >= 4.5, r.toFixed(2));
@@ -116,9 +125,10 @@ const overflowX = (page) => page.evaluate(() => document.documentElement.scrollW
       });
       await seed(page, { ...withKey, lessonDone: { l01: y }, lessonSteps: { l01: { listen: true, phrases: true, roleplay: true } }, days: { [y]: { steps: { listen: true, phrases: true, roleplay: true }, seconds: 3600, lessonId: 'l01' } } });
       await page.waitForSelector('.lesson-card');
-      check('ngày mới chọn bài 2', (await page.textContent('.lesson-card .tag')).includes('Bài 2'));
-      const meta = await page.textContent('.hero .muted');
-      check('chuỗi ngày vẫn giữ khi hôm nay chưa học', meta.includes('1 ngày liên tiếp'), meta);
+      const tag = await page.textContent('[data-lesson-tag]');
+      check('ngày mới chọn bài tiếp theo của lộ trình nhanh (bài 3)', tag.includes('Bài 3'), tag);
+      const streakTxt = (await page.textContent('[data-streak]')).trim();
+      check('chuỗi ngày vẫn giữ khi hôm nay chưa học', streakTxt === '1', streakTxt);
       await ctx.close();
     }
 
@@ -132,13 +142,13 @@ const overflowX = (page) => page.evaluate(() => document.documentElement.scrollW
       check('chưa lật thì nút chấm bị ẩn', !(await page.isVisible('.grades')));
       await page.click('#flip');
       await page.click('.grade.bad');
-      check('sau "Quên" vẫn còn 2 thẻ', (await page.textContent('h1 .badge')).includes('2'));
+      check('sau "Quên" vẫn còn 2 thẻ', (await page.textContent('[data-left]')).includes('2'));
       for (let k = 0; k < 3; k++) {
         if (!(await page.$('#flip'))) break;
         await page.click('#flip');
         await page.click('.grade.good');
       }
-      await page.waitForSelector('.center');
+      await page.waitForSelector('.empty');
       const done = await page.evaluate(() => Object.values(JSON.parse(localStorage.getItem('tagt:v1')).days).some((d) => d.steps?.review));
       check('ôn hết thẻ → bước ôn tập xong', done);
       await ctx.close();
@@ -269,7 +279,7 @@ const overflowX = (page) => page.evaluate(() => document.documentElement.scrollW
       check('học xong bài 1 → đánh dấu hoàn thành', Boolean(st.lessonDone.l01));
       const kinds = Object.keys(st.cards).map((k) => k[0]);
       check('có 8 thẻ cụm câu + 4 thẻ luyện nghe', kinds.filter((k) => k === 'p').length === 8 && kinds.filter((k) => k === 'd').length === 4, kinds.join(''));
-      check('trang Hôm nay hiện 3/5 bước', (await page.textContent('.ring span')).trim() === '3/5');
+      check('trang Hôm nay hiện 4/5 bước (ôn tập tự xong vì sáng nay chưa có thẻ)', (await page.textContent('[data-steps]')).trim() === '4/5');
       await ctx.close();
     }
 
@@ -296,6 +306,33 @@ const overflowX = (page) => page.evaluate(() => document.documentElement.scrollW
       check('nhập vai: câu khác mẫu → gọi AI 1 lần', st.calls === 1);
       await answer('I think it is a bug because the document says something else');
       check('nhập vai: chấm lại đúng câu đó → dùng kết quả cũ', st.calls === 1);
+      await ctx.close();
+    }
+    // 11. Claude (Anthropic SDK tải khi cần): kiểm tra kết nối chạy được, gửi đúng model và tham số.
+    {
+      const ctx = await browser.newContext({ ...devices['Pixel 7'] });
+      const page = await ctx.newPage();
+      let body = null;
+      await page.route('https://api.anthropic.com/**', async (route) => {
+        body = JSON.parse(route.request().postData());
+        const ev = (t, d) => `event: ${t}\ndata: ${JSON.stringify(d)}\n\n`;
+        const msg = { id: 'm', type: 'message', role: 'assistant', model: body.model, content: [], stop_reason: null, stop_sequence: null, usage: { input_tokens: 1, output_tokens: 0 } };
+        const out =
+          ev('message_start', { type: 'message_start', message: msg }) +
+          ev('content_block_start', { type: 'content_block_start', index: 0, content_block: { type: 'text', text: '' } }) +
+          ev('content_block_delta', { type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: 'OK' } }) +
+          ev('content_block_stop', { type: 'content_block_stop', index: 0 }) +
+          ev('message_delta', { type: 'message_delta', delta: { stop_reason: 'end_turn', stop_sequence: null }, usage: { output_tokens: 1 } }) +
+          ev('message_stop', { type: 'message_stop' });
+        await route.fulfill({ status: 200, headers: { 'access-control-allow-origin': '*', 'content-type': 'text/event-stream' }, body: out });
+      });
+      await seed(page, { settings: { provider: 'anthropic', keys: { anthropic: 'sk-ant-test' } }, cards: {}, days: {}, lessonDone: {} });
+      await page.goto(URL + '#/settings');
+      await page.waitForSelector('#testAI');
+      await page.click('#testAI');
+      await page.waitForFunction(() => !document.querySelector('#aiStatus').textContent.includes('Đang'));
+      check('Claude: kiểm tra kết nối thành công', (await page.textContent('#aiStatus')).includes('Kết nối được'), await page.textContent('#aiStatus'));
+      check('Claude: model mặc định + effort + fallback', body?.model === 'claude-opus-5-5' && body?.output_config?.effort === 'low' && body?.fallbacks === 'default');
       await ctx.close();
     }
   } finally {

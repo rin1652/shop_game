@@ -44,3 +44,31 @@ export const ROADMAP = [
   { week: 5, days: 'Ngày 13–14', focus: 'Làm việc thật', detail: 'Review test case, nghe tiếng Anh kiểu Ấn.' },
   { week: 6, days: 'Vòng 2 (từ ngày 15)', focus: 'Học lại, khó hơn', detail: 'App tự quay lại bài cũ nhất. Lần này bật "Nghe chép" (ẩn chữ), không xem nghĩa, và nhập vai với AI mentor nhiều hơn.' },
 ];
+
+// Lộ trình: thứ tự bài học. "fast" dành cho mục tiêu dự án AI testing trong ~2 tuần.
+export const ROUTES = {
+  fast: {
+    label: 'Dự án AI testing · 2 tuần',
+    desc: 'Ưu tiên giao tiếp về Chunk → RAG → Self-healing với mentor. 14 bài trong 14 ngày, sau đó học tiếp các bài còn lại.',
+    lessons: ['l01', 'l03', 'l15', 'l05', 'l16', 'l04', 'l17', 'l09', 'l18', 'l19', 'l08', 'l20', 'l10', 'l14'],
+    roadmap: [
+      { days: 'Ngày 1–2', focus: 'Sống sót trong cuộc gọi', detail: 'Xin nhắc lại, báo cáo standup.' },
+      { days: 'Ngày 3–5', focus: 'Giải thích & báo cáo self-healing', detail: 'Giải thích module bằng lời đơn giản, diễn giải lại để xác nhận, báo cáo số liệu healing.' },
+      { days: 'Ngày 6–9', focus: 'Hỏi rõ & phản biện', detail: 'Làm rõ requirement, false heal, phản biện lịch sự, đề xuất ngưỡng và bước duyệt.' },
+      { days: 'Ngày 10–12', focus: 'RAG, mức độ bug, demo', detail: 'Chunk size, top-k, rerank; bảo vệ severity; demo cả pipeline.' },
+      { days: 'Ngày 13–14', focus: 'Deadline & tiếng Anh kiểu Ấn', detail: 'Ước lượng, thương lượng; rồi làm Bài kiểm tra cuối lộ trình.' },
+    ],
+  },
+  standard: {
+    label: 'Chuẩn · 20 bài',
+    desc: 'Đi lần lượt từ giao tiếp QA cơ bản tới nền tảng AI testing.',
+    lessons: ['l01', 'l02', 'l03', 'l04', 'l05', 'l06', 'l07', 'l08', 'l09', 'l10', 'l11', 'l12', 'l13', 'l14', 'l15', 'l16', 'l17', 'l18', 'l19', 'l20'],
+    roadmap: [
+      { days: 'Ngày 1–3', focus: 'Sống sót trong cuộc gọi', detail: 'Xin nhắc lại, giới thiệu bản thân, báo cáo standup.' },
+      { days: 'Ngày 4–6', focus: 'Hiểu requirement của mentor', detail: 'Hỏi làm rõ, diễn giải lại để xác nhận, hỏi edge case.' },
+      { days: 'Ngày 7–9', focus: 'Báo bug & bảo vệ quan điểm', detail: 'Mô tả bug, severity vs priority, phản biện lịch sự.' },
+      { days: 'Ngày 10–14', focus: 'Đàm phán & làm việc thật', detail: 'Deadline, "not a bug", nhờ giúp đỡ, review test case, nghe tiếng Anh kiểu Ấn.' },
+      { days: 'Ngày 15–20', focus: 'Nền tảng AI testing', detail: 'Self-healing, false heal, ngưỡng & duyệt, chunking & RAG, demo pipeline.' },
+    ],
+  },
+};

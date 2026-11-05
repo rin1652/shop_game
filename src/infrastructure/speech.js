@@ -1,11 +1,18 @@
-// Đọc (Text-to-Speech) và nghe giọng nói (Speech Recognition) bằng Web Speech API có sẵn trong trình duyệt.
-import { getState } from './storage.js';
+// Adapter giọng nói: đọc (Text-to-Speech) và nghe (Speech Recognition) bằng Web Speech API của trình duyệt.
+// Không đọc trạng thái app trực tiếp: lựa chọn giọng/tốc độ được truyền vào qua setVoicePreferences.
+
+let prefs = () => ({ mentorVoice: '', myVoice: '', rate: 1 });
+export const setVoicePreferences = (fn) => (prefs = fn);
 
 const synth = typeof window !== 'undefined' ? window.speechSynthesis : null;
 let voicesCache = [];
 
+let voicesLoaded = null;
+
+// Tải danh sách giọng một lần; các lần sau trả về ngay (không bắt trang phải chờ).
 export function loadVoices() {
-  return new Promise((resolve) => {
+  if (voicesLoaded) return voicesLoaded;
+  voicesLoaded = new Promise((resolve) => {
     if (!synth) return resolve([]);
     const done = () => {
       voicesCache = synth.getVoices().filter((v) => v.lang && v.lang.toLowerCase().startsWith('en'));
@@ -15,12 +22,13 @@ export function loadVoices() {
     synth.addEventListener('voiceschanged', done, { once: true });
     setTimeout(done, 1500);
   });
+  return voicesLoaded;
 }
 
 export const englishVoices = () => voicesCache;
 
 function pickVoice(kind) {
-  const s = getState().settings;
+  const s = prefs();
   const wanted = kind === 'mentor' ? s.mentorVoice : s.myVoice;
   const byName = voicesCache.find((v) => v.name === wanted);
   if (byName) return byName;
@@ -48,7 +56,7 @@ export function speak(text, { kind = 'me', slow = false } = {}) {
     } else {
       u.lang = kind === 'mentor' ? 'en-IN' : 'en-US';
     }
-    const base = Number(getState().settings.rate) || 1;
+    const base = Number(prefs().rate) || 1;
     u.rate = slow ? Math.max(0.5, base * 0.7) : base;
     u.onend = () => resolve();
     u.onerror = () => resolve();
@@ -100,39 +108,4 @@ export function listen({ onInterim } = {}) {
 
 export function stopListening() {
   active?.stop();
-}
-
-// So sánh câu nói với câu mẫu theo từ (LCS). Trả về % và danh sách từ của câu mẫu có/không khớp.
-const norm = (s) =>
-  s
-    .toLowerCase()
-    .replace(/[’']/g, "'")
-    .replace(/[^a-z0-9' ]+/g, ' ')
-    .split(/\s+/)
-    .filter(Boolean);
-
-export function scoreSpeech(target, said) {
-  const a = norm(target);
-  const b = norm(said);
-  const dp = Array.from({ length: a.length + 1 }, () => new Array(b.length + 1).fill(0));
-  for (let i = a.length - 1; i >= 0; i--) {
-    for (let j = b.length - 1; j >= 0; j--) {
-      dp[i][j] = a[i] === b[j] ? dp[i + 1][j + 1] + 1 : Math.max(dp[i + 1][j], dp[i][j + 1]);
-    }
-  }
-  const matched = new Array(a.length).fill(false);
-  let i = 0;
-  let j = 0;
-  while (i < a.length && j < b.length) {
-    if (a[i] === b[j]) {
-      matched[i] = true;
-      i++;
-      j++;
-    } else if (dp[i + 1][j] >= dp[i][j + 1]) i++;
-    else j++;
-  }
-  const hits = matched.filter(Boolean).length;
-  const extra = Math.max(0, b.length - hits);
-  const score = a.length ? Math.round((hits / (a.length + extra * 0.5)) * 100) : 0;
-  return { score: Math.min(100, score), words: a.map((w, k) => ({ w, ok: matched[k] })) };
 }

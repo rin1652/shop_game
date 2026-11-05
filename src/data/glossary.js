@@ -86,6 +86,43 @@ export const INDIAN_ENGLISH = [
   { en: 'Lakh / crore', vi: '100.000 / 10.000.000', ex: 'We have one lakh users.' },
 ];
 
+// Thuật ngữ nền tảng AI testing (Chunk → RAG → Self-healing).
+export const AI_TEST_VOCAB = [
+  { en: 'self-healing', vi: 'tự phục hồi: test tự tìm lại phần tử khi locator hỏng', ex: 'The self-healing module fixed three broken steps.' },
+  { en: 'heal / healed / a heal', vi: 'sửa (tự động) / đã được sửa / một lần sửa', ex: 'Two heals were wrong last night.' },
+  { en: 'locator', vi: 'cách định vị phần tử (XPath, CSS selector, ID…)', ex: 'The locator broke after the UI change.' },
+  { en: 'element', vi: 'phần tử trên giao diện (nút, ô nhập…)', ex: 'It clicked the wrong element.' },
+  { en: 'attribute', vi: 'thuộc tính của phần tử (id, class, text…)', ex: 'We compare five attributes for each candidate.' },
+  { en: 'XPath / CSS selector', vi: 'hai kiểu viết locator', ex: 'The old XPath was too long and fragile.' },
+  { en: 'DOM / DOM snapshot', vi: 'cấu trúc trang / bản chụp cấu trúc trang tại một thời điểm', ex: 'We take a DOM snapshot when a step fails.' },
+  { en: 'candidate', vi: 'ứng viên (phần tử có thể đúng)', ex: 'The module found four candidates.' },
+  { en: 'confidence score', vi: 'điểm tin cậy', ex: 'The confidence score was 0.92.' },
+  { en: 'threshold', vi: 'ngưỡng', ex: 'We only heal above the threshold of 0.8.' },
+  { en: 'weight', vi: 'trọng số', ex: 'The text attribute has the highest weight.' },
+  { en: 'false heal', vi: 'heal nhầm phần tử', ex: 'A false heal can hide a real bug.' },
+  { en: 'false positive / false negative', vi: 'dương tính giả (pass nhưng lỗi) / âm tính giả (fail nhưng không lỗi)', ex: 'A wrong heal gives a false positive.' },
+  { en: 'precision / success rate', vi: 'độ chính xác / tỉ lệ thành công', ex: 'Healing precision is 95 percent.' },
+  { en: 'retry', vi: 'chạy lại', ex: 'More retries can hide flaky tests.' },
+  { en: 'review / approve', vi: 'xem xét / duyệt', ex: 'A tester approves each heal before commit.' },
+  { en: 'commit', vi: 'lưu thay đổi vào kho code', ex: 'Do not commit healed locators automatically.' },
+  { en: 'healing report', vi: 'báo cáo các lần heal', ex: 'Please attach the healing report.' },
+  { en: 'chunk / chunking', vi: 'mảnh / việc chia tài liệu thành mảnh nhỏ', ex: 'Each chunk has about 500 tokens.' },
+  { en: 'chunk size / overlap', vi: 'kích thước mảnh / phần chồng lấn giữa hai mảnh', ex: 'Chunk size is 500 with an overlap of 50.' },
+  { en: 'token', vi: 'đơn vị chữ mà model xử lý (~¾ từ tiếng Anh)', ex: 'The prompt is about 3,000 tokens.' },
+  { en: 'RAG (retrieval-augmented generation)', vi: 'tạo câu trả lời có tra cứu tài liệu liên quan trước', ex: 'RAG gives the model the related test cases.' },
+  { en: 'retrieve / retrieval', vi: 'lấy ra / việc truy xuất', ex: 'Retrieval returns the top five chunks.' },
+  { en: 'top-k', vi: 'số kết quả liên quan nhất được lấy ra', ex: 'We use top-k five.' },
+  { en: 'relevant / relevance', vi: 'liên quan / độ liên quan', ex: 'Some chunks are not relevant.' },
+  { en: 'rerank / reranking', vi: 'xếp hạng lại kết quả', ex: 'Reranking improved the relevance.' },
+  { en: 'embedding', vi: 'vector số biểu diễn ý nghĩa của đoạn văn', ex: 'We store the embeddings in a vector store.' },
+  { en: 'vector store / index', vi: 'kho vector / đánh chỉ mục để tìm kiếm', ex: 'We index only the error logs.' },
+  { en: 'context', vi: 'ngữ cảnh đưa vào cho model', ex: 'With more context, the model guesses less.' },
+  { en: 'grounded / hallucination', vi: 'dựa trên tài liệu / bịa thông tin', ex: 'The answer must be grounded, no hallucination.' },
+  { en: 'pipeline', vi: 'chuỗi các bước xử lý', ex: 'The pipeline has three steps.' },
+  { en: 'integration', vi: 'tích hợp', ex: 'The CI integration is still in progress.' },
+  { en: 'trade-off', vi: 'sự đánh đổi', ex: 'The trade-off is more review time.' },
+];
+
 export const ACCENT_TIPS = [
   { t: 'Âm "t", "d" uốn lưỡi', d: 'Người Ấn thường phát âm t/d bằng cách cong lưỡi lên vòm miệng, nghe "nặng" hơn: "data" ≈ "ḍeṭa".' },
   { t: '"th" thành "t" hoặc "d"', d: '"three" ≈ "tree", "the" ≈ "de". Nghe "tree days" thường là "three days".' },

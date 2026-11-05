@@ -9,7 +9,9 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "node --test tests/unit.test.js",
-    "test:e2e": "node tests/e2e.cjs"
+    "test:e2e": "node tests/e2e.cjs",
+    "simulate": "node tests/learner-sim.cjs",
+    "coverage": "node tests/coverage.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.4.0"

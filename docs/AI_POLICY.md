@@ -78,4 +78,4 @@ flowchart TD
 | Bộ nhớ đệm prompt (Claude), hoặc đệm tự động (OpenAI, Gemini) | Phần prompt lặp lại được tính giá thấp hơn |
 | Mức suy nghĩ `low` cho chat ngắn (Claude 5.x) | Câu trả lời 1–3 câu không cần suy nghĩ sâu |
 
-Thống kê trong ngày (số lần gọi, token ước tính, số lần tự xử lý, số lần dùng lại kết quả cũ) nằm ở **Cài đặt → AI hôm nay**. Code: `src/lib/aiGate.js`.
+Thống kê trong ngày (số lần gọi, token ước tính, số lần tự xử lý, số lần dùng lại kết quả cũ) nằm ở **Cài đặt → AI hôm nay**. Code: quyết định nằm ở `src/domain/aiPolicy.js` (hàm thuần, có unit test), thực thi ở `src/application/coach.js`, thống kê và bộ nhớ đệm ở `src/application/usage.js`.
