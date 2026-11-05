@@ -84,34 +84,44 @@ export function renderChat(el, query) {
       input.value = text;
       return;
     }
-    s.chat.messages.push({ role: 'user', content: text });
+    // Giữ tham chiếu tới đúng cuộc hội thoại này: nếu bạn đổi tình huống giữa chừng,
+    // kết quả cũ không được ghi vào (hay xoá nhầm) cuộc hội thoại mới.
+    const thread = s.chat.messages;
+    const userMsg = { role: 'user', content: text };
+    const undo = () => {
+      const i = thread.lastIndexOf(userMsg);
+      if (i !== -1) thread.splice(i, 1);
+      save();
+    };
+    thread.push(userMsg);
     save();
     draw('');
-    controller = new AbortController();
+    const ctrl = (controller = new AbortController());
     try {
       const full = await chat({
         system: mentorSystemPrompt(scenario, activeLesson),
-        messages: trimHistory(s.chat.messages),
-        onText: (t) => draw(t),
-        signal: controller.signal,
+        messages: trimHistory(thread),
+        onText: (t) => !ctrl.signal.aborted && draw(t),
+        signal: ctrl.signal,
       });
-      if (!full) {
-        s.chat.messages.pop();
-        draw();
+      if (!full || ctrl.signal.aborted) {
+        undo();
+        if (!ctrl.signal.aborted) draw();
         return;
       }
-      s.chat.messages.push({ role: 'assistant', content: full });
+      thread.push({ role: 'assistant', content: full });
       save();
       draw();
-      if (s.chat.messages.filter((m) => m.role === 'user').length >= 6 && activeLesson) markStep('roleplay', activeLesson.id);
+      if (thread.filter((m) => m.role === 'user').length >= 6 && activeLesson) markStep('roleplay', activeLesson.id);
       if (s.settings.autoSpeak) speak(split(full).reply, { kind: 'mentor' });
     } catch (err) {
-      s.chat.messages.pop();
+      undo();
+      if (ctrl.signal.aborted) return;
       draw();
       log.insertAdjacentHTML('beforeend', `<div class="err">${esc(err.message)}</div>`);
       if (text !== '[START]') input.value = text;
     } finally {
-      controller = null;
+      if (controller === ctrl) controller = null;
     }
   };
 

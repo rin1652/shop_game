@@ -37,6 +37,8 @@ Dùng tốt trên điện thoại, cài được ra màn hình chính như một
 npm install
 npm run dev     # chạy thử
 npm run build   # build ra thư mục dist/
+npm test        # unit test phần logic (ôn tập, chấm điểm, cổng AI)
+npm run test:e2e  # test trên trình duyệt thật với AI giả lập (cần Playwright, chạy sau build)
 ```
 
-Mỗi lần push, workflow `.github/workflows/deploy.yml` tự build và deploy lên GitHub Pages. Việc cần làm một lần: vào repo trên GitHub → **Settings → Pages → Source: GitHub Actions**.
+Mỗi lần push, workflow `.github/workflows/deploy.yml` chạy unit test, build và deploy lên GitHub Pages (test hỏng thì không deploy). Việc cần làm một lần: vào repo trên GitHub → **Settings → Pages → Source: GitHub Actions**.
